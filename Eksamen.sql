@@ -1,6 +1,7 @@
 START TRANSACTION;
 
 CREATE SCHEMA IF NOT EXISTS eksamen;
+USE Eksamen;
 
 -- Satt rekkefølge for å droppe de riktig, hvis de eksisterer. 
 DROP TABLE IF EXISTS Subscription;
@@ -8,27 +9,26 @@ DROP TABLE IF EXISTS Comments;
 DROP TABLE IF EXISTS UserLivestream;
 DROP TABLE IF EXISTS Livestream;
 DROP TABLE IF EXISTS Video;
-DROP TABLE IF EXISTS UserInfo;
+DROP TABLE IF EXISTS Person;
 
 -- Skape tabellene
-CREATE TABLE UserInfo(
-	UserID CHAR(27) NOT NULL UNIQUE,
-    UserNumber TINYINT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
+CREATE TABLE Person(
+	UserID CHAR(27) NOT NULL,
     UserName VARCHAR(100) NOT NULL,
     FirstName VARCHAR(15) NOT NULL,
     LastName VARCHAR(25) NOT NULL,
     CountryOfRes ENUM('Norway', 'Sweden', 'Denmark', 'Finland', 'Russia', 'Iceland'),
     Password VARCHAR(50) NOT NULL,
     DateOfRegister TIMESTAMP,
-    CONSTRAINT UserInfo_PK PRIMARY KEY(UserID)
+    CONSTRAINT Person_PK PRIMARY KEY(UserID)
 );
 
 CREATE TABLE Subscription(
 	UserID CHAR(27) NOT NULL,
-    SubscribesTo TINYINT UNSIGNED NOT NULL,
+    SubscribesTo CHAR(27) NOT NULL,
     Started TIMESTAMP,
     CONSTRAINT Subscription_PK Primary KEY(UserID, SubscribesTo),
-    CONSTRAINT Subs_UserInfo_FK FOREIGN KEY(SubscribesTo) REFERENCES UserInfo(UserNumber)
+    CONSTRAINT Subs_Person_FK FOREIGN KEY(SubscribesTo) REFERENCES Person(UserID)
 );
 
 CREATE TABLE Video(
@@ -39,7 +39,7 @@ CREATE TABLE Video(
     Uploaded TIMESTAMP,
     ViewNumber SMALLINT,
     CONSTRAINT Video_PK PRIMARY KEY(VideoID),
-    CONSTRAINT Video_UserInfo_FK FOREIGN KEY(UserID) REFERENCES UserInfo(UserID)
+    CONSTRAINT Video_Person_FK FOREIGN KEY(UserID) REFERENCES Person(UserID)
 );
 
 CREATE TABLE Comments(
@@ -50,7 +50,7 @@ CREATE TABLE Comments(
     Made TIMESTAMP,
     CONSTRAINT Comments_PK PRIMARY KEY(CommentID),
     CONSTRAINT Comments_Video_FK FOREIGN KEY(VideoID) REFERENCES Video(VideoID),
-    CONSTRAINT Comments_UserInfo_FK FOREIGN KEY(UserID) REFERENCES UserInfo(UserID)
+    CONSTRAINT Comments_Person_FK FOREIGN KEY(UserID) REFERENCES Person(UserID)
 );
 
 CREATE TABLE Livestream(
@@ -60,7 +60,7 @@ CREATE TABLE Livestream(
     Description TEXT,
     ViewNumber SMALLINT,
     CONSTRAINT Livestream_PK PRIMARY KEY(StreamID),
-    CONSTRAINT Livestream_UserInfo_FK FOREIGN KEY(UserID) REFERENCES Userinfo(UserID)
+    CONSTRAINT Livestream_Person_FK FOREIGN KEY(UserID) REFERENCES Person(UserID)
 );
 
 -- Skape koblingsentitet
@@ -68,12 +68,12 @@ CREATE TABLE UserLivestream(
 	ULUserID CHAR(27) NOT NULL,
     ULStreamID VARCHAR(9) NOT NULL,
     CONSTRAINT UL_PK PRIMARY KEY(ULUserID, ULStreamID),
-    CONSTRAINT UL_UserInfo_FK FOREIGN KEY(ULUserID) REFERENCES UserInfo(UserID),
+    CONSTRAINT UL_Person_FK FOREIGN KEY(ULUserID) REFERENCES Person(UserID),
     CONSTRAINT UL_Livestream_FK FOREIGN KEY(ULStreamID) REFERENCES Livestream(StreamID)
 );
 
--- Legg inn data i UserInfo
-INSERT INTO UserInfo(UserID, UserName, Firstname, LastName, CountryOfRes, Password)
+-- Legg inn data i Person
+INSERT INTO Person(UserID, UserName, Firstname, LastName, CountryOfRes, Password)
 VALUES('yPuIjS8cdvmQcDElSbHKbPI7PXP', 'BenJen01', 'Ben', 'Jenkins', 'Russia', 'Password123'), 
 	  ('uZghnOQiZazhbxjVxC3ipXfzINg', 'Alacho', 'Håvard', 'Mathisen', 'Norway', 'SomethingSecret435'),
       ('3OhZHe60v9m9nSFgPHEbAQC3gef', 'Lauper', 'Per', 'Lavuås', 'Norway', 'LaererIDB1100'), 
@@ -87,24 +87,24 @@ VALUES('yPuIjS8cdvmQcDElSbHKbPI7PXP', 'BenJen01', 'Ben', 'Jenkins', 'Russia', 'P
 
 -- Legg inn data i Subscription
 INSERT INTO Subscription(UserID, SubscribesTo)
-VALUES('yPuIjS8cdvmQcDElSbHKbPI7PXP', '1'),
-	  ('3OhZHe60v9m9nSFgPHEbAQC3gef', '2'),
-      ('yAJTgoDFXYX935XPjTGSKxoNzd6', '3'),
-	  ('6wjm3yxzS02KdVPhtrQCKiLCIOM', '5'),
-      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '4'),
-	  ('uZghnOQiZazhbxjVxC3ipXfzINg', '10'),
-      ('8yBjF79yF7l7sZFvczaUvNJCC8J', '9'),
-	  ('9ObqY02K9nA4KOrPfuHQ4QSEJrG', '8'),
-      ('yPuIjS8cdvmQcDElSbHKbPI7PXP', '7'),
-	  ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '10'),
-      ('yAJTgoDFXYX935XPjTGSKxoNzd6', '5'),
-	  ('3OhZHe60v9m9nSFgPHEbAQC3gef', '3'),
-      ('9ObqY02K9nA4KOrPfuHQ4QSEJrG', '2'),
-	  ('uZghnOQiZazhbxjVxC3ipXfzINg', '1'),
-      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '7'),
-      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '5'),
-	  ('VFh8WUJxGXR6oxUUDCcu4Kvsq7V', '6'),
-      ('uZghnOQiZazhbxjVxC3ipXfzINg', '2');
+VALUES('yPuIjS8cdvmQcDElSbHKbPI7PXP', 'uZghnOQiZazhbxjVxC3ipXfzINg'),
+	  ('3OhZHe60v9m9nSFgPHEbAQC3gef', 'uZghnOQiZazhbxjVxC3ipXfzINg'),
+      ('yAJTgoDFXYX935XPjTGSKxoNzd6', 'uZghnOQiZazhbxjVxC3ipXfzINg'),
+	  ('6wjm3yxzS02KdVPhtrQCKiLCIOM', '3OhZHe60v9m9nSFgPHEbAQC3gef'),
+      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '3OhZHe60v9m9nSFgPHEbAQC3gef'),
+	  ('uZghnOQiZazhbxjVxC3ipXfzINg', '3OhZHe60v9m9nSFgPHEbAQC3gef'),
+      ('8yBjF79yF7l7sZFvczaUvNJCC8J', '3OhZHe60v9m9nSFgPHEbAQC3gef'),
+	  ('9ObqY02K9nA4KOrPfuHQ4QSEJrG', '3OhZHe60v9m9nSFgPHEbAQC3gef'),
+      ('yPuIjS8cdvmQcDElSbHKbPI7PXP', 'd4H2kz5yxj8Ema2QvWpKTsZ4Trg'),
+	  ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '9ObqY02K9nA4KOrPfuHQ4QSEJrG'),
+      ('yAJTgoDFXYX935XPjTGSKxoNzd6', 'd4H2kz5yxj8Ema2QvWpKTsZ4Trg'),
+	  ('3OhZHe60v9m9nSFgPHEbAQC3gef', 'd4H2kz5yxj8Ema2QvWpKTsZ4Trg'),
+      ('9ObqY02K9nA4KOrPfuHQ4QSEJrG', '8yBjF79yF7l7sZFvczaUvNJCC8J'),
+	  ('uZghnOQiZazhbxjVxC3ipXfzINg', '9ObqY02K9nA4KOrPfuHQ4QSEJrG'),
+      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', 'yPuIjS8cdvmQcDElSbHKbPI7PXP'),
+      ('d4H2kz5yxj8Ema2QvWpKTsZ4Trg', '8yBjF79yF7l7sZFvczaUvNJCC8J'),
+	  ('VFh8WUJxGXR6oxUUDCcu4Kvsq7V', '8yBjF79yF7l7sZFvczaUvNJCC8J'),
+      ('uZghnOQiZazhbxjVxC3ipXfzINg', '8yBjF79yF7l7sZFvczaUvNJCC8J');
 
 -- Legg inn videoer
 INSERT INTO Video(VideoID, UserID, Title, Description, ViewNumber)
@@ -133,6 +133,6 @@ VALUES('aLRf3', '6wjm3yxzS02KdVPhtrQCKiLCIOM', 'You wish!', 2),
 INSERT INTO Video(VideoID, UserID, Description, ViewNumber)
 VALUES('wBhPbp3', 'yAJTgoDFXYX935XPjTGSKxoNzd6', 'FERDIG!', 1);
 
-SELECT * FROM UserInfo;
+SELECT * FROM Person;
 
 COMMIT;
